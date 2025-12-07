@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>To-Do List with Task History</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+  /* Same styling as previous for brevity */
+
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #4b6cb7, #182848);
+    color: #e7eaf6;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+    user-select: none;
+  }
+
+  #appContainer {
+    background: rgba(24, 40, 72, 0.9);
+    box-shadow: 0 0 40px #4056f4;
+    border-radius: 16px;
+    width: 600px;
+    padding: 32px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  h2 {
+    margin: 0 0 20px 0;
+    font-weight: 600;
+    letter-spacing: 3px;
+    font-size: 2rem;
+    color: #91b2f8;
+    text-align: center;
+    text-shadow: 0 0 12px #91b2f8;
+  }
+
+  .motivational {
+    font-size: 1.15rem;
+    margin-bottom: 25px;
+    font-weight: 500;
+    text-align: center;
+    user-select: text;
+  }
+
+  .sectionTitle {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-size: 1.3rem;
+    color: #aad1ff;
+    text-shadow: 0 0 6px #5a87d1;
+    text-align: center;
+  }
+
+  .inputRow {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  input[type="text"], input[type="number"], input[type="time"] {
+    flex-grow: 1;
+    padding: 14px 18px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 12px;
+    outline: none;
+    transition: box-shadow 0.25s ease, background-color 0.25s ease;
+    color: #1b1b38;
+  }
+
+  input[type="text"]:focus, input[type="number"]:focus, input[type="time"]:focus {
+    box-shadow: 0 0 12px #6279f6;
+    background-color: #eef2ff;
+  }
+
+  button {
+    background: linear-gradient(90deg, #5761ff, #6392ff);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 22px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #f0f4ff;
+    cursor: pointer;
+    box-shadow: 0 6px 10px #4c5dffcc;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    user-select: none;
+  }
+
+  button:hover {
+    background: linear-gradient(90deg, #4a53e8, #5576ff);
+    box-shadow: 0 8px 18px #3f49c8cc;
+    transform: translateY(-3px);
+  }
+
+  button:active {
+    transform: translateY(0px);
+  }
+
+  #toggleLongTermBtn {
+    background: #44afff;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 15px #2a8defcc;
+  }
+
+  #toggleLongTermBtn:hover {
+    background: #279bff;
+    box-shadow: 0 9px 22px #1e73d9cc;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    border-top: 1px solid #5b7fff60;
+    border-radius: 0 0 12px 12px;
+  }
+
+  ul::-webkit-scrollbar {
+    width: 9px;
+  }
+  ul::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ul::-webkit-scrollbar-thumb {
+    background: #6e85ffbb;
+    border-radius: 8px;
+  }
+
+  li {
+    background: rgba(68, 83, 240, 0.15);
+    margin: 8px 12px 8px 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 6px 12px #2a32b4b3;
+    transition: background-color 0.35s ease, transform 0.3s ease;
+    user-select: none;
+  }
+
+  li:hover {
+    background-color: rgba(68, 83, 240, 0.35);
+    transform: translateY(-4px);
+  }
+
+  li:focus-within {
+    outline: 2px solid #6279f6aa;
+    outline-offset: 3px;
+  }
+
+  .taskInfo {
+    display: flex;
+    gap: 16px;
+    flex-grow: 1;
+    align-items: center;
+    font-size: 1rem;
+  }
+
+  .taskText {
+    color: #e7eaf6;
+    user-select: text;
+    flex-grow: 1;
+  }
+
+  .completed {
+    text-decoration: line-through;
+    color: #a0d88f;
+  }
+
+  .hours, .reminder, .status {
+    color: #b0bbffcc;
+    font-size: 0.85rem;
+    user-select: none;
+  }
+
+  .buttonGroup {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .iconBtn {
+    background-color: transparent;
+    border: none;
+    color: #91b2f8;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: 8px;
+    padding: 8px 10px;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+  }
+
+  .iconBtn:hover {
+    color: #d0deff;
+  }
+
+  .deleteBtn:hover {
+    color: #ff7272;
+  }
+  .completeBtn {
+    font-size: 22px;
+  }
+  .saveBtn:hover {
+    color: #57d821;
+  }
+  .cancelBtn:hover {
+    color: #ff4037;
+  }
+
+  .editInput {
+    font-size: 1rem;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    flex-grow: 1;
+    color: #2e2e61;
+  }
+
+  .streak {
+    text-align: center;
+    margin-top: 12px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #85f085;
+    text-shadow: 0 0 10px #38b838;
+  }
+
+  .congratsOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    animation: fadeIn 0.5s ease forwards;
+    user-select: none;
+  }
+
+  .congratsBox {
+    background: linear-gradient(135deg, #3eba4f, #6ee37f);
+    padding: 28px 36px;
+    border-radius: 20px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 0 30px #2de72dcc;
+    max-width: 320px;
+  }
+
+  .congratsBox button {
+    background: #fff;
+    color: #3eba4f;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 12px 28px;
+    border-radius: 12px;
+    margin-top: 18px;
+    box-shadow: 0 4px 15px #2de72dcc;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .congratsBox button:hover {
+    background-color: #2de72d;
+    color: white;
+  }
+
+  .historyContainer {
+    margin-top: 40px;
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid #5b7fff60;
+    border-radius: 12px;
+    padding: 14px 20px;
+    background: rgba(24, 40, 72, 0.8);
+  }
+
+  .historyHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .status {
+    font-style: italic;
+  }
+
+</style>
+</head>
+<body>
+
+<div id="appContainer" role="main" aria-label="To-do list application with history">
+  <div id="root"></div>
+</div>
+
+<!-- React and ReactDOM -->
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+
+// Combined component for normal tasks with reminders and history integration
+function NormalTaskList({ tasks, setTasks, addToHistory }) {
+  const [taskInput, setTaskInput] = React.useState('');
+  const [reminderTime, setReminderTime] = React.useState('');
+  const [editIndex, setEditIndex] = React.useState(null);
+  const [editTask, setEditTask] = React.useState('');
+  const [editTime, setEditTime] = React.useState('');
+
+  React.useEffect(() => {
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  function addTask() {
+    if (taskInput.trim() === '') return;
+    const timeStr = reminderTime.trim();
+    const newTask = { text: taskInput.trim(), completed: false, reminder: timeStr };
+    setTasks([...tasks, newTask]);
+    setTaskInput('');
+    setReminderTime('');
+  }
+
+  function deleteTask(index) {
+    addToHistory({
+      ...tasks[index],
+      status: 'Deleted',
+      listType: 'Normal',
+      timestamp: new Date().toISOString(),
+    });
+    setTasks(tasks.filter((_, i) => i !== index));
+  }
+
+  function startEdit(index) {
+    setEditIndex(index);
+    setEditTask(tasks[index].text);
+    setEditTime(tasks[index].reminder || '');
+  }
+
+  function saveEdit(index) {
+    if (editTask.trim() === '') return;
+    const newTasks = [...tasks];
+    newTasks[index] = { text: editTask.trim(), completed: newTasks[index].completed, reminder: editTime.trim() };
+    setTasks(newTasks);
+    setEditIndex(null);
+    setEditTask('');
+    setEditTime('');
+  }
+
+  function cancelEdit() {
+    setEditIndex(null);
+    setEditTask('');
+    setEditTime('');
+  }
+
+  function toggleComplete(index) {
+    const newTasks = [...tasks];
+    newTasks[index].completed = !newTasks[index].completed;
+    if(newTasks[index].completed) {
+      addToHistory({
+        ...newTasks[index],
+        status: 'Completed',
+        listType: 'Normal',
+        timestamp: new Date().toISOString(),
+      });
+    }
+    setTasks(newTasks);
+  }
+
+  // Reminder check every 15 seconds for demo
+  React.useEffect(() => {
+    if (tasks.length === 0) return;
+
+    const intervalId = setInterval(() => {
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
+      tasks.forEach((task, idx) => {
+        if (
+          task.reminder === currentTime &&
+          !task._notified &&
+          !task.completed
+        ) {
+          if (Notification.permission === "granted") {
+            new Notification("Task Reminder", { body: task.text });
+          } else {
+            alert(`Reminder: ${task.text}`);
+          }
+          tasks[idx]._notified = true;
+          setTasks([...tasks]);
+        }
+        if (task._notified && task.reminder !== currentTime) {
+          delete tasks[idx]._notified;
+          setTasks([...tasks]);
+        }
+      });
+    }, 15000);
+
+    return () => clearInterval(intervalId);
+  }, [tasks]);
+
+  return (
+    <section aria-label="Normal To-Do List with reminders">
+      <h3 className="sectionTitle">Normal To-Do List</h3>
+      <div className="inputRow" aria-label="Add new task with reminder time">
+        <input
+          type="text"
+          placeholder="New task"
+          value={taskInput}
+          onChange={e => setTaskInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') addTask(); }}
+          aria-label="Task name"
+        />
+        <input
+          type="time"
+          value={reminderTime}
+          onChange={e => setReminderTime(e.target.value)}
+          aria-label="Set reminder time"
+        />
+        <button onClick={() => addTask()} aria-label="Add task" type="button">Add</button>
+      </div>
+      <ul aria-live="polite" aria-relevant="additions removals">
+        {tasks.map((task, index) => (
+          <li key={index} aria-checked={task.completed} role="listitem" tabIndex={0}>
+            <div className="taskInfo">
+              <button
+                className="iconBtn completeBtn"
+                onClick={() => toggleComplete(index)}
+                aria-label={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
+                title={task.completed ? "Completed" : "Mark as complete"}
+                type="button"
+              >
+                {task.completed ? '✔️' : '⬜'}
+              </button>
+              {editIndex === index ? (
+                <>
+                  <input
+                    className="editInput"
+                    value={editTask}
+                    onChange={e => setEditTask(e.target.value)}
+                    aria-label="Edit task text"
+                    type="text"
+                  />
+                  <input
+                    type="time"
+                    className="editInput"
+                    value={editTime}
+                    onChange={e => setEditTime(e.target.value)}
+                    aria-label="Edit reminder time"
+                  />
+                </>
+              ) : (
+                <>
+                  <span className={"taskText " + (task.completed ? "completed" : "")}>
+                    {task.text}
+                  </span>
+                  {task.reminder && (
+                    <span className="reminder" title="Reminder time">
+                      ⏰ {task.reminder}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="buttonGroup">
+              {editIndex === index ? (
+                <>
+                  <button className="iconBtn saveBtn" onClick={() => saveEdit(index)} aria-label="Save edit" type="button">💾</button>
+                  <button className="iconBtn cancelBtn" onClick={cancelEdit} aria-label="Cancel edit" type="button">✖️</button>
+                </>
+              ) : (
+                <>
+                  <button className="iconBtn editBtn" onClick={() => startEdit(index)} aria-label="Edit task" type="button">✏️</button>
+                  <button className="iconBtn deleteBtn" onClick={() => deleteTask(index)} aria-label="Delete task" type="button">🗑️</button>
+                </>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function LongTermTaskList({ tasks, setTasks, streak, setStreak, addToHistory }) {
+  const [taskInput, setTaskInput] = React.useState('');
+  const [hoursInput, setHoursInput] = React.useState('');
+  const [editIndex, setEditIndex] = React.useState(null);
+  const [editTask, setEditTask] = React.useState('');
+  const [editHours, setEditHours] = React.useState('');
+  const [showCongrats, setShowCongrats] = React.useState(false);
+
+  // Add new task
+  function addTask() {
+    if(taskInput.trim() === '') return;
+    const hoursNum = parseInt(hoursInput, 10);
+    if(isNaN(hoursNum) || hoursNum <= 0) {
+      alert('Please enter a valid number of hours (greater than 0)');
+      return;
+    }
+    setTasks([...tasks, { text: taskInput.trim(), hours: hoursNum, completed: false }]);
+    setTaskInput('');
+    setHoursInput('');
+  }
+
+  // Delete task
+  function deleteTask(index) {
+    addToHistory({
+      ...tasks[index],
+      status: 'Deleted',
+      listType: 'Long-Term',
+      timestamp: new Date().toISOString(),
+    });
+    setTasks(tasks.filter((_, i) => i !== index));
+  }
+
+  // Start editing task
+  function startEdit(index) {
+    setEditIndex(index);
+    setEditTask(tasks[index].text);
+    setEditHours(tasks[index].hours);
+  }
+
+  // Save edited task
+  function saveEdit(index) {
+    if(editTask.trim() === '') return;
+    const hoursNum = parseInt(editHours, 10);
+    if(isNaN(hoursNum) || hoursNum <= 0) {
+      alert('Please enter a valid number of hours (greater than 0)');
+      return;
+    }
+    const newTasks = [...tasks];
+    newTasks[index] = { ...newTasks[index], text: editTask.trim(), hours: hoursNum };
+    setTasks(newTasks);
+    setEditIndex(null);
+    setEditTask('');
+    setEditHours('');
+  }
+
+  // Cancel editing
+  function cancelEdit() {
+    setEditIndex(null);
+    setEditTask('');
+    setEditHours('');
+  }
+
+  // Toggle task completed or not
+  function toggleComplete(index) {
+    const newTasks = [...tasks];
+    newTasks[index].completed = !newTasks[index].completed;
+    if(newTasks[index].completed) {
+      addToHistory({
+        ...newTasks[index],
+        status: 'Completed',
+        listType: 'Long-Term',
+        timestamp: new Date().toISOString(),
+      });
+    }
+    setTasks(newTasks);
+  }
+
+  // Check if all tasks completed
+  React.useEffect(() => {
+    if (tasks.length && tasks.every(t => t.completed)) {
+      setShowCongrats(true);
+      setStreak(s => s + 1);
+    } else {
+      setShowCongrats(false);
+    }
+  }, [tasks]);
+
+  // Start new to-do list resetting all states and streak
+  function startNewList() {
+    setTasks([]);
+    setStreak(0);
+    setShowCongrats(false);
+  }
+
+  return (
+    <section aria-label="Long-Term To-Do List">
+      <h3 className="sectionTitle">Long-Term To-Do List</h3>
+
+      {showCongrats && (
+        <div className="congratsOverlay" role="alert" aria-live="assertive">
+          <div className="congratsBox">
+            <p>🎉 Congratulations! You completed all your tasks! 🎉</p>
+            <button onClick={startNewList} aria-label="Create new to-do list">Create New To-Do List</button>
+          </div>
+        </div>
+      )}
+
+      {!showCongrats && <>
+        <div className="inputRow" aria-label="Add new task with estimated hours">
+          <input
+            type="text"
+            placeholder="New task"
+            value={taskInput}
+            onChange={e => setTaskInput(e.target.value)}
+            onKeyDown={e => { if(e.key === 'Enter') addTask(); }}
+            aria-label="Task name"
+          />
+          <input
+            type="number"
+            placeholder="Hours (e.g. 2)"
+            value={hoursInput}
+            onChange={e => setHoursInput(e.target.value)}
+            onKeyDown={e => { if(e.key === 'Enter') addTask(); }}
+            aria-label="Estimated hours"
+            min="1"
+          />
+          <button onClick={addTask} aria-label="Add task" type="button">Add</button>
+        </div>
+
+        <ul aria-live="polite" aria-relevant="additions removals">
+          {tasks.map((task, index) => (
+            <li 
+              key={index}
+              aria-checked={task.completed}
+              role="listitem"
+              tabIndex={0}
+              >
+              <div className="taskInfo">
+                <button
+                  className="iconBtn completeBtn"
+                  onClick={() => toggleComplete(index)}
+                  aria-label={task.completed ? "Mark task as incomplete" : "Mark task as complete"}
+                  title={task.completed ? "Completed" : "Mark as complete"}
+                  type="button"
+                >
+                  {task.completed ? '✔️' : '⬜'}
+                </button>
+                {editIndex === index ? (
+                  <>
+                    <input
+                      className="editInput"
+                      value={editTask}
+                      onChange={e => setEditTask(e.target.value)}
+                      aria-label="Edit task text"
+                      type="text"
+                    />
+                    <input
+                      type="number"
+                      min="1"
+                      className="editInput"
+                      value={editHours}
+                      onChange={e => setEditHours(e.target.value)}
+                      aria-label="Edit estimated hours"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <span className={"taskText " + (task.completed ? "completed" : "")}>
+                      {task.text}
+                    </span>
+                    <span className="hours" title="Estimated hours">
+                      ⌛ {task.hours} hr{task.hours > 1 ? 's' : ''}
+                    </span>
+                  </>
+                )}
+              </div>
+              <div className="buttonGroup">
+                {editIndex === index ? (
+                  <>
+                    <button className="iconBtn saveBtn" onClick={() => saveEdit(index)} aria-label="Save edit" type="button">💾</button>
+                    <button className="iconBtn cancelBtn" onClick={cancelEdit} aria-label="Cancel edit" type="button">✖️</button>
+                  </>
+                ) : (
+                  <>
+                    <button className="iconBtn editBtn" onClick={() => startEdit(index)} aria-label="Edit task" type="button">✏️</button>
+                    <button className="iconBtn deleteBtn" onClick={() => deleteTask(index)} aria-label="Delete task" type="button">🗑️</button>
+                  </>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div className="streak" aria-live="polite">
+          Current Streak: {streak} {streak === 1 ? 'day' : 'days'}
+        </div>
+      </>}
+    </section>
+  );
+}
+
+function TaskHistory({ history, clearHistory }) {
+  return (
+    <section className="historyContainer" aria-label="Task History">
+      <div className="historyHeader">
+        <h3 className="sectionTitle">Task History</h3>
+        <button onClick={clearHistory} aria-label="Clear task history" type="button">Clear History</button>
+      </div>
+      {history.length === 0 ? (
+        <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#7791d2' }}>No task history yet.</p>
+      ) : (
+        <ul>
+          {history.map((task, index) => (
+            <li key={index} tabIndex={0}>
+              <div className="taskInfo">
+                <span className="taskText">{task.text}</span>
+                {task.listType === 'Long-Term' && (
+                  <span className="hours" title="Estimated hours">⌛ {task.hours} hr{task.hours > 1 ? 's' : ''}</span>
+                )}
+                {task.listType === 'Normal' && task.reminder && (
+                  <span className="reminder" title="Reminder time">⏰ {task.reminder}</span>
+                )}
+                <span className="status" style={{ marginLeft: 'auto' }}>
+                  [{task.status}]
+                </span>
+              </div>
+              <div style={{ fontSize: '0.7rem', color: '#94a3ff', userSelect: 'none'}}>
+                {new Date(task.timestamp).toLocaleString()}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function TodoApp() {
+  const [normalTasks, setNormalTasks] = React.useState([]);
+  const [longTermTasks, setLongTermTasks] = React.useState([]);
+  const [longTermStreak, setLongTermStreak] = React.useState(0);
+  const [showLongTerm, setShowLongTerm] = React.useState(false);
+  const [history, setHistory] = React.useState([]);
+
+  // Motivational messages
+  const motivationalMessages = [
+    "Start strong, finish stronger! 💪",
+    "Every task completed is progress made!",
+    "Big goals start with small tasks.",
+    "Consistency turns dreams into reality.",
+    "Let's get things done today! 🚀",
+    "Small steps every day add up!",
+    "Your future self will thank you.",
+    "Stay focused and keep pushing!",
+    "Finish what you started and shine!",
+    "One task at a time, one day at a time."
+  ];
+
+  // Pick a random message on load
+  const [welcomeMessage] = React.useState(() => {
+    const index = Math.floor(Math.random() * motivationalMessages.length);
+    return motivationalMessages[index];
+  });
+
+  // Method to add completed or deleted tasks to history
+  function addToHistory(task) {
+    setHistory(prev => [task, ...prev]);
+  }
+
+  // Clear history
+  function clearHistory() {
+    if(window.confirm("Are you sure you want to clear the entire task history?")) {
+      setHistory([]);
+    }
+  }
+
+  return (
+    <>
+      <p className="motivational" role="banner">{welcomeMessage}</p>
+
+      <NormalTaskList tasks={normalTasks} setTasks={setNormalTasks} addToHistory={addToHistory} />
+
+      <button
+        id="toggleLongTermBtn"
+        onClick={() => setShowLongTerm(!showLongTerm)}
+        aria-pressed={showLongTerm}
+        aria-label={showLongTerm ? "Hide long-term to-do list" : "Show long-term to-do list"}
+        type="button"
+      >
+        {showLongTerm ? "Hide Long-Term To-Do List" : "Show Long-Term To-Do List"}
+      </button>
+
+      {showLongTerm && (
+        <LongTermTaskList
+          tasks={longTermTasks}
+          setTasks={setLongTermTasks}
+          streak={longTermStreak}
+          setStreak={setLongTermStreak}
+          addToHistory={addToHistory}
+        />
+      )}
+
+      <TaskHistory history={history} clearHistory={clearHistory} />
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<TodoApp />);
+
+</script>
+</body>
+</html>
